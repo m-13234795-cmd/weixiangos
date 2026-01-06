@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weixiang OS | Final Fixed</title>
+    <style>
+        :root {
+            --bg: #0d0d12; --sidebar: #13131a; --accent: #00f2fe; --text: #e0e0e0;
+            --border: rgba(255, 255, 255, 0.08); --bubble-bot: #1c1c24; --bubble-user: #00f2fe;
+            --danger: #ff3e3e; --input-bg: #1a1a21;
+        }
+        .light-mode {
+            --bg: #f4f7f6; --sidebar: #ffffff; --accent: #007bff; --text: #1a1a1b;
+            --border: rgba(0, 0, 0, 0.1); --bubble-bot: #ffffff; --bubble-user: #007bff;
+            --danger: #d9534f; --input-bg: #e9ecef;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; transition: 0.2s ease; }
+        body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; }
+
+        /* AUTH PORTAL */
+        #auth-portal { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; }
+        .auth-container { width: 360px; text-align: center; padding: 20px; }
+        .logo-glow { width: 80px; height: 80px; border-radius: 50%; margin-bottom: 30px; border: 2px solid var(--accent); box-shadow: 0 0 15px var(--accent); }
+        .auth-input { width: 100%; padding: 18px 25px; margin-bottom: 15px; border-radius: 50px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text); outline: none; font-size: 14px; }
+        .btn-row { display: flex; gap: 12px; margin-top: 10px; }
+        .auth-btn { flex: 1; padding: 14px; border-radius: 50px; border: none; font-weight: bold; cursor: pointer; font-size: 12px; }
+        .login-btn { background: var(--accent); color: #000; }
+        .signup-btn { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .forgot-link { display: block; margin-top: 20px; color: var(--danger); font-size: 11px; cursor: pointer; opacity: 0.6; text-decoration: underline; }
+
+        /* SYSTEM UI */
+        #system-ui { display: none; width: 100%; height: 100%; }
+        .sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px; }
+        .side-btn { width: 100%; padding: 12px; margin-bottom: 8px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--text); cursor: pointer; font-size: 11px; text-align: left; }
+        .side-btn:hover { background: var(--accent); color: black; }
+        .active-mode { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 8px rgba(0, 242, 254, 0.2); }
+
+        .chat-area { flex: 1; display: flex; flex-direction: column; position: relative; }
+        #chat-window { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .msg { padding: 14px 20px; border-radius: 20px; max-width: 75%; font-size: 14px; }
+        .user-msg { align-self: flex-end; background: var(--bubble-user); color: #000; font-weight: 500; border-bottom-right-radius: 4px; }
+        .bot-msg { align-self: flex-start; background: var(--bubble-bot); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+        
+        .input-bar { padding: 25px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
+        #msg-input { flex: 1; background: var(--input-bg); border: 1px solid var(--border); padding: 15px 25px; border-radius: 50px; color: var(--text); outline: none; }
+        #lockdown-status { display: none; background: var(--danger); color: white; text-align: center; padding: 8px; font-size: 11px; font-weight: 800; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-portal">
+        <div class="auth-container">
+            <img src="https://www.adobe.com/express/create/ai/media_169572259d30c258a9193cdffe8b857d246f5dd68.png?width=750" class="logo-glow">
+            <input type="text" id="user-in" class="auth-input" placeholder="Username">
+            <input type="password" id="pass-in" class="auth-input" placeholder="Password">
+            <div class="btn-row">
+                <button class="auth-btn login-btn" onclick="handleLogin()">LOGIN</button>
+                <button class="auth-btn signup-btn" onclick="handleSignup()">SIGNUP</button>
+            </div>
+            <p style="margin-top:20px; font-size:12px; color:var(--accent); cursor:pointer;" onclick="startOS('Guest')">CONTINUE AS GUEST</p>
+            <span class="forgot-link" onclick="resetSystem()">RESET PASSWORD / CLEAR ACCOUNTS</span>
+        </div>
+    </div>
+
+    <div id="system-ui">
+        <div class="sidebar">
+            <h1 style="color:var(--accent); margin-bottom: 25px; font-size: 18px; letter-spacing: 2px;">WEIXIANG OS</h1>
+            
+            <p style="font-size: 9px; color: #555; margin-bottom: 8px;">CORE ENGINE</p>
+            <button id="mode-roast" class="side-btn active-mode" onclick="setMode('roast')">🔥 ROAST MODE</button>
+            <button id="mode-help" class="side-btn" onclick="setMode('help')">🛡️ ASSISTANT MODE</button>
+            
+            <p style="font-size: 9px; color: #555; margin-top: 20px; margin-bottom: 8px;">PREFERENCES</p>
+            <button class="side-btn" onclick="toggleTheme()">🌓 THEME TOGGLE</button>
+            <select id="v-type" class="side-btn" style="background: var(--input-bg); width: 100%;">
+                <option value="female">👩 FEMALE VOICE</option>
+                <option value="male">👨 MALE VOICE</option>
+            </select>
+
+            <button class="side-btn" style="margin-top: auto; border-color: var(--danger); color: var(--danger);" onclick="location.reload()">LOGOUT</button>
+        </div>
+        
+        <div class="chat-area">
+            <div id="lockdown-status">MUTE ACTIVE: <span id="m-timer">10</span>s</div>
+            <div id="chat-window"></div>
+            <div class="input-bar">
+                <input type="text" id="msg-input" placeholder="Enter message...">
+                <button onclick="send()" style="background:var(--accent); border:none; padding: 0 30px; border-radius:50px; cursor:pointer; font-weight:bold;">SEND</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let yapCount = 0;
+        let currentMode = 'roast';
+        const roasts = {
+            "you": "quit yapping like a 4 year old begging for candies.",
+            "rizz": "Your rizz is so bad it's actually impressive.",
+            "aura": "Aura Check: Negative infinite.",
+            "looks": "You look like a default character that hasn't loaded yet.",
+            "money": "You're so broke you can't even afford a dream."
+        };
+
+        function handleSignup() {
+            const u = document.getElementById('user-in').value;
+            const p = document.getElementById('pass-in').value;
+            if (u && p) { localStorage.setItem("wx_user_" + u, p); alert("Account created!"); }
+            else { alert("Fill both fields."); }
+        }
+
+        function handleLogin() {
+            const u = document.getElementById('user-in').value;
+            const p = document.getElementById('pass-in').value;
+            if (u !== "" && localStorage.getItem("wx_user_" + u) === p) { startOS(u); }
+            else { alert("Invalid login."); }
+        }
+
+        function resetSystem() {
+            if(confirm("Clear all accounts?")) { localStorage.clear(); alert("Memory wiped."); }
+        }
+
+        function startOS(user) {
+            document.getElementById('auth-portal').style.display = 'none';
+            document.getElementById('system-ui').style.display = 'flex';
+            botTalk("System Online. User: " + user.toUpperCase());
+        }
+
+        function setMode(m) {
+            currentMode = m;
+            document.getElementById('mode-roast').classList.toggle('active-mode', m === 'roast');
+            document.getElementById('mode-help').classList.toggle('active-mode', m === 'help');
+            botTalk(m === 'roast' ? "Roast mode Engaged." : "Assistant mode Engaged.");
+        }
+
+        function toggleTheme() { document.body.classList.toggle('light-mode'); }
+
+        function botTalk(text) {
+            const win = document.getElementById('chat-window');
+            const d = document.createElement('div');
+            d.className = "msg bot-msg"; d.innerText = text;
+            win.appendChild(d); win.scrollTop = win.scrollHeight;
+
+            window.speechSynthesis.cancel();
+            const s = new SpeechSynthesisUtterance(text);
+            const vType = document.getElementById('v-type').value;
+            const voices = window.speechSynthesis.getVoices();
+
+            if(vType === 'male') {
+                s.voice = voices.find(v => v.name.includes("David") || v.name.includes("Male")) || voices[0];
+                s.pitch = 0.8;
+            } else {
+                s.voice = voices.find(v => v.name.includes("Zira") || v.name.includes("Female")) || voices[0];
+                s.pitch = 1.2;
+            }
+            window.speechSynthesis.speak(s);
+        }
+
+        function send() {
+            const inp = document.getElementById('msg-input');
+            const val = inp.value.trim().toLowerCase();
+            if(!val || inp.disabled) return;
+
+            const uD = document.createElement('div');
+            uD.className = "msg user-msg"; uD.innerText = val;
+            document.getElementById('chat-window').appendChild(uD);
+            inp.value = "";
+
+            setTimeout(() => {
+                let res = "";
+                if (val === "clear") { document.getElementById('chat-window').innerHTML = ""; return; }
+                
+                if(currentMode === 'roast') {
+                    if(val.includes("you") || val.includes(" u ")) {
+                        yapCount++;
+                        if(yapCount >= 3) { lockdown(); return; }
+                        res = roasts["you"];
+                    } else {
+                        res = "pure yap.";
+                        for(let k in roasts) { if(val.includes(k)) { res = roasts[k]; break; } }
+                    }
+                } else {
+                    res = "I am your assistant.";
+                    if(val.includes("hello")) res = "Hello! Ready to help.";
+                }
+                botTalk(res);
+            }, 600);
+        }
+
+        function lockdown() {
+            const msg = "im gonna disable you from talking for ur own good";
+            botTalk(msg);
+            
+            const inp = document.getElementById('msg-input');
+            const ban = document.getElementById('lockdown-status');
+            const timer = document.getElementById('m-timer');
+            
+            inp.disabled = true; 
+            ban.style.display = 'block';
+            
+            let t = 10;
+            timer.innerText = t;
+            const i = setInterval(() => {
+                t--; 
+                timer.innerText = t;
+                if(t <= 0) { 
+                    clearInterval(i); 
+                    inp.disabled = false; 
+                    ban.style.display = 'none'; 
+                    yapCount = 0; 
+                }
+            }, 1000);
+        }
+
+        document.getElementById('msg-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') send(); });
+        document.getElementById('pass-in').addEventListener('keypress', (e) => { if(e.key === 'Enter') handleLogin(); });
+        window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
+    </script>
+</body>
+</html>
